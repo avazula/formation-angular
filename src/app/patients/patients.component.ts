@@ -1,25 +1,21 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {Patient} from '../@core/model/patient.model';
-import {Chance} from 'chance';
-import {SensorStatus} from '../@core/model/sensor-status.enum';
-
-const chance: Chance = new Chance();
+import {PatientService} from '../@core/service/patient.service';
 
 @Component({
   selector: 'app-patients',
   templateUrl: './patients.component.html',
   styleUrls: ['./patients.component.scss']
 })
-export class PatientsComponent {
+export class PatientsComponent implements OnInit {
 
-  public patients: Patient[] = [
-    new Patient({id: '1', firstName: chance.first(), lastName: chance.last(), sensorStatus: SensorStatus.ENABLED, createdAt: new Date()}),
-    new Patient({id: '2', firstName: chance.first(), lastName: chance.last(), sensorStatus: SensorStatus.ENABLED, createdAt: new Date()}),
-    new Patient({id: '3', firstName: chance.first(), lastName: chance.last(), sensorStatus: SensorStatus.DISABLED, createdAt: new Date()}),
-    new Patient({id: '4', firstName: chance.first(), lastName: chance.last(), sensorStatus: SensorStatus.ENABLED, createdAt: new Date()}),
-    new Patient({id: '5', firstName: chance.first(), lastName: chance.last(), sensorStatus: SensorStatus.DISABLED, createdAt: new Date()}),
-    new Patient({id: '6', firstName: chance.first(), lastName: chance.last(), sensorStatus: SensorStatus.DISABLED, createdAt: new Date()})
-  ];
+  public patients: Patient[] = [];
+
+  public constructor(private patientService: PatientService) {}
+
+  public ngOnInit(): void {
+    this.patients = this.patientService.findAll();
+  }
 
   public enableSensor(patient: Patient): void {
     alert(`Le capteur de ${patient.displayName} a été activé avec succès`);
