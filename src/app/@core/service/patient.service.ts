@@ -1,6 +1,9 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import {Patient} from '../model/patient.model';
-import {SensorStatus} from '../model/sensor-status.enum';
+import {Observable} from 'rxjs';
+import {HttpClient} from '@angular/common/http';
+import {map, mergeMap, tap, toArray} from 'rxjs/operators';
+import {Sensor} from '../model/sensor.model';
 import {Chance} from 'chance';
 
 const chance: Chance = new Chance();
@@ -8,18 +11,30 @@ const chance: Chance = new Chance();
 @Injectable()
 export class PatientService {
 
-  private patients: Patient[] = [
-    new Patient({id: '1', firstName: chance.first(), lastName: chance.last(), sensorStatus: SensorStatus.ENABLED, createdAt: new Date()}),
-    new Patient({id: '2', firstName: chance.first(), lastName: chance.last(), sensorStatus: SensorStatus.ENABLED, createdAt: new Date()}),
-    new Patient({id: '3', firstName: chance.first(), lastName: chance.last(), sensorStatus: SensorStatus.DISABLED, createdAt: new Date()}),
-    new Patient({id: '4', firstName: chance.first(), lastName: chance.last(), sensorStatus: SensorStatus.ENABLED, createdAt: new Date()}),
-    new Patient({id: '5', firstName: chance.first(), lastName: chance.last(), sensorStatus: SensorStatus.DISABLED, createdAt: new Date()}),
-    new Patient({id: '6', firstName: chance.first(), lastName: chance.last(), sensorStatus: SensorStatus.DISABLED, createdAt: new Date()})
-  ];
+  public constructor(private http: HttpClient) { }
 
-  public constructor() { }
+  public findAll(): Observable<Patient[]> {
+    return this.http.get('api/patients').pipe(
+      mergeMap((data: any[]) => data),
+      map((data: any) => new Patient(data)),
+      mergeMap((patient: Patient) => this.http.get(`api/sensors/${patient.sensorId}`).pipe(
+        map((data: any) => new Sensor(data)),
+        tap((sensor: Sensor) => patient.sensor = sensor),
+        map(() => patient),
+      )),
+      toArray()
+    );
+  }
 
-  public findAll(): Patient[] {
-    return this.patients;
+  public updateSensor(sensor: Sensor): Observable<void> {
+    return this.http.put(
+      `api/sensors`,
+      {
+        id: sensor.id,
+        status: sensor.status
+      }
+    ).pipe(
+      map(() => void 0)
+    );
   }
 }
