@@ -1,0 +1,4 @@
+<ng-container *ngIf="patient$|async as patient">
+  <h2>{{ patient.displayName }}</h2>
+  <div>Etat du capteur : {{ patient.sensor.status }}</div>
+</ng-container>
